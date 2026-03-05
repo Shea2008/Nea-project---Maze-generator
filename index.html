@@ -1,0 +1,26 @@
+<html lang = en>
+    <head>
+        <script src="script.js"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+        <div>
+            <h1 id = "banner">Maze Generator</h1>
+        </div>
+        <div id = "container">
+            <input type = "number" id = "rows" placeholder="rows" min = 5>
+            <input type = "number" id = "columns" placeholder="Columns" min = 5>
+            <div>
+                <input type = "radio" name="option" id = "dijkstras" checked="checked">
+                <label for = "dijkstras">Dijkstras</label>
+                <input type = "radio" name="option" id = "A*">
+                <label for = "A*">A*</label>
+            </div>
+            <button type="submit" onclick="start()" class="button">Generate maze</button>
+            <button type = "submit" onclick="solveMaze()" class="button">Solve</button>
+            <p id = "Error"></p>
+            <canvas id="canvas" width = "600" height = "600"></canvas>
+        </div>
+    </body>
+</html>

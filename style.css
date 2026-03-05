@@ -1,0 +1,21 @@
+#container{
+    display: grid;
+    place-items: center;
+    gap: 3px;
+}
+
+.button{
+    background-color: purple;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
+    color: white;
+}
+
+#banner{
+    font-size: 50;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    background-color: rgb(210, 228, 204);
+}
