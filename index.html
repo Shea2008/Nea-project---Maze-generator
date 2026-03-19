@@ -1,26 +1,85 @@
 <html lang = en>
     <head>
-        <script src="script.js"></script>
+        <script src="script.js" defer></script>
         <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
         <div>
-            <h1 id = "banner">Maze Generator</h1>
+            <h1 id = "banner">Maze Generator and Solver</h1>
         </div>
-        <div id = "container">
-            <input type = "number" id = "rows" placeholder="rows" min = 5>
-            <input type = "number" id = "columns" placeholder="Columns" min = 5>
-            <div>
-                <input type = "radio" name="option" id = "dijkstras" checked="checked">
-                <label for = "dijkstras">Dijkstras</label>
-                <input type = "radio" name="option" id = "A*">
-                <label for = "A*">A*</label>
+
+        <div id="main-content">
+            <div id="control-panel">
+                <h2 id="control-heading">Control Panel</h2>
+                <div id="inputs">
+                    <input type = "number" id = "rows" placeholder="rows" min = 5>
+                    <input type = "number" id = "columns" placeholder="columns" min = 5>
+                </div>
+
+                <div id="checkboxes">
+                    <input type = "radio" name="option" id = "dijkstras" checked="checked">
+                    <label for = "dijkstras">Dijkstras</label>
+
+                    <input type = "radio" name="option" id = "A*">
+                    <label for = "A*">A*</label>
+                </div>
+                
+                <div id="slider-container">
+                    <label for="speedSlider">Speed:</label>
+                    <input type = "range" min=1 max="200" id="speedSlider">
+                </div>
+
+                <div id="button-container">
+                    <button type = "submit" onclick="start()" class="button">Generate maze</button>
+                    <button type = "submit" onclick="solveMaze()" class="button">Solve</button>
+                    <button type = "submit" onclick="reset()" class="button">Reset</button>
+                    <button type = "submit" onclick="skipAnimation()" class="button">Skip Animation</button>
+                    <button type = "submit" onclick="pauseAnimation()" class="button" id="pause">Pause</button>
+                </div>
+
+                <p id = "Error"></p>
+                
             </div>
-            <button type="submit" onclick="start()" class="button">Generate maze</button>
-            <button type = "submit" onclick="solveMaze()" class="button">Solve</button>
-            <p id = "Error"></p>
-            <canvas id="canvas" width = "600" height = "600"></canvas>
+
+            <div id="canvas-panel">
+                <canvas id="canvas" width = "0" height = "0"></canvas>
+            </div>
+
+            <div id="comparison">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Dijkstras</th>
+                        <th>A*</th>
+                    </tr>
+                    <tr>
+                        <td>Time taken (ms)</td>
+                        <td id="dijkstraTime">---</td>
+                        <td id="astarTime">---</td>
+                    </tr>
+                    <tr>
+                        <td>Nodes visited</td>
+                        <td id="dijkstraNodes">---</td>
+                        <td id="astarNodes">---</td>
+                    </tr>
+                    <tr>
+                        <td>Uses Heuristic</td>
+                        <td>No</td>
+                        <td id="astarHeuristic">Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Time complexity-Best case</td>
+                        <td id="dijkstraEfficiency">O(logV)</td>
+                        <td id="astarEfficiency">O(d)</td>
+                    </tr>
+                    <tr>
+                        <td>Time complexity-Worst case</td>
+                        <td id="dijkstraWorst">O(V log V)</td>
+                        <td id="astarWorst">O(b^d)</td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </body>
 </html>

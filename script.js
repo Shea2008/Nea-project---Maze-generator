@@ -3,7 +3,6 @@ class Cell{
         //initialise variables in constructor
         this.x = x
         this.y = y
-        this.cellSize = 32
         this.visited = false;
         this.walls = {N: true, S: true, E: true, W: true}
         //recursive animation variables
@@ -14,51 +13,49 @@ class Cell{
         this.inPath = false
     }
 
-    draw(ctx){
+    draw(ctx, cellWidth, cellHeight){
         //x and y co-ordinates with cell size
-        const x = this.x * this.cellSize
-        const y = this.y * this.cellSize
+        const x = this.x * cellWidth
+        const y = this.y * cellHeight
 
         if(this.walls["N"]){
             //draw top wall
             ctx.moveTo(x, y)
-            ctx.lineTo(x + this.cellSize, y)
+            ctx.lineTo(x + cellWidth, y)
         }
         if(this.walls["S"]){
             //draw bottom wall
-            ctx.moveTo(x+this.cellSize, y+this.cellSize)
-            ctx.lineTo(x, y+this.cellSize)
+            ctx.moveTo(x, y+cellHeight)
+            ctx.lineTo(x + cellWidth, y+cellHeight)
         }
         if(this.walls["E"]){
             //draw right wall
-            ctx.moveTo(x+this.cellSize, y)
-            ctx.lineTo(x+this.cellSize, y+this.cellSize)
+            ctx.moveTo(x+cellWidth, y)
+            ctx.lineTo(x+cellWidth, y+cellHeight)
         }
         if(this.walls["W"]){
             //draw left wall
-            ctx.moveTo(x, y+this.cellSize)
+            ctx.moveTo(x, y+cellHeight)
             ctx.lineTo(x, y)
         }
 
         if(this.backtrack && !this.leader){
-            ctx.fillStyle = "green"
-            ctx.fillRect(x, y, this.cellSize, this.cellSize)
+            ctx.fillStyle = "#52b456"
+            ctx.fillRect(x, y, cellWidth, cellHeight)
         }
         if(this.leader){
             ctx.fillStyle = "red"
-            ctx.fillRect(x, y, this.cellSize, this.cellSize)
+            ctx.fillRect(x, y, cellWidth, cellHeight)
         }
 
         if(this.searched){
-            ctx.fillStyle = "dodgerblue"
-            ctx.fillRect(x, y, this.cellSize, this.cellSize)
+            ctx.fillStyle = "#52b456"
+            ctx.fillRect(x, y, cellWidth, cellHeight)
         }
         if(this.inPath){
-            ctx.fillStyle = "yellow"
-            ctx.fillRect(x, y, this.cellSize, this.cellSize)
+            ctx.fillStyle = "purple"
+            ctx.fillRect(x, y, cellWidth, cellHeight)
         }
-        //draw the lines
-        ctx.stroke()
     }
 
     removeWall(direction){
@@ -137,14 +134,14 @@ class Maze{
             nextCell.leader = true
             cell.leader = false
             this.displayGrid()
-            await sleep(200)
+            await sleep(201 - speed.value)
             await this.generateMaze(nextCell)
             
             cell.backtrack = false
             nextCell.leader = false
             cell.leader = true
-            this.displayGrid(this.grid)
-            await sleep(200)
+            this.displayGrid()
+            await sleep(201 - speed.value)
             //gets the new neighbours
             neighbours = this.getNeighbours(cell)
         }
@@ -182,10 +179,13 @@ class Maze{
     displayGrid(){
         let c = document.getElementById("canvas")
         let ctx = c.getContext("2d")
+
+        ctx.clearRect(0, 0, c.width, c.height)
+        ctx.beginPath()
         
         //set the canvas size
-        c.width = 32*this.columns
-        c.height = 32*this.rows
+        let cellWidth = (c.width/this.columns)
+        let cellHeight = (c.height/this.rows)
 
         //set the colour and the line width
         ctx.strokeStyle = "black"
@@ -195,9 +195,10 @@ class Maze{
         for(let i = 0; i < this.rows; i++){
             //loops through columns
             for(let j = 0; j < this.columns; j++){
-                this.grid[i][j].draw(ctx)
+                this.grid[i][j].draw(ctx, cellWidth, cellHeight)
             }
         }
+        ctx.stroke()
     }
 }
 
@@ -273,7 +274,7 @@ class DijkstraSolver extends Pathfinding{
             visited.add(current)
             this.visitedNodes.push(current)
 
-            //if (current === this.end) break;
+            if (current === this.end) break;
             
             const neighbours = this.getNeighbours(current)
             //loops through the neighbours
@@ -298,8 +299,9 @@ class DijkstraSolver extends Pathfinding{
 
 class AstarSolver extends Pathfinding{
     heuristic(cell){
-        //calculates manhattan distanceto use as a heuristic
-        return (cell.x - this.end.x) + (cell.y - this.end.y)
+        //calculates manhattan distance to use as a heuristic
+        let manhattanDistance = Math.abs(cell.x - this.end.x) + Math.abs(cell.y - this.end.y)
+        return manhattanDistance
     }
 
     solve(){
@@ -311,7 +313,9 @@ class AstarSolver extends Pathfinding{
         g.set(this.start, 0)
         pq.push({cell: this.start, f: this.heuristic(this.start)})
 
+        //while priority queue is not empty
         while (pq.length > 0){
+            //sorts the queue in ascending order and then removes the smallest from the queue
             pq.sort((a, b) => a.f -b.f)
             const { cell: current } = pq.shift()
             if(visited.has(current)) continue
@@ -319,11 +323,14 @@ class AstarSolver extends Pathfinding{
             this.visitedNodes.push(current)
             if(current === this.end) break
 
+            //loops through the neighbours
             for(const neighbour of this.getNeighbours(current)){
                 if(visited.has(neighbour)) continue
 
+                //weighting of 1
                 const tentativeG = g.get(current) + 1
                 if(!g.has(neighbour) || tentativeG < g.get(neighbour)){
+                    //sets the g value and f value and adds to the priority queue
                     previous.set(neighbour, current)
                     g.set(neighbour, tentativeG)
                     const f = tentativeG + this.heuristic(neighbour)
@@ -338,6 +345,11 @@ class AstarSolver extends Pathfinding{
 }
 
 let currentMaze = null
+let speed = document.getElementById("speedSlider")
+let skipTheAnimation = false
+let paused = false
+let generating = false
+let solving = false
 
 function retrieveInputs(){
     //get value from input fields
@@ -349,13 +361,13 @@ function retrieveInputs(){
     columnData = Number(columnData)
 
     //validate the data
-    if ((Number.isInteger(rowData) && rowData >= 5 && rowData <= 40) && (Number.isInteger(columnData) && columnData >= 5 && columnData <= 40)) {
+    if ((Number.isInteger(rowData) && rowData >= 5 && rowData <= 100) && (Number.isInteger(columnData) && columnData >= 5 && columnData <= 100)) {
         document.getElementById("Error").textContent = ""
         return [rowData, columnData]
     }
     else {
-        document.getElementById("Error").textContent = "Please enter valid data: data must be an integer, greater than 5 and less than 40"
-        return null
+        document.getElementById("Error").textContent = "Please enter valid data: data must be an integer, greater than 5 and less than 100"
+        return
     }
 }
 
@@ -377,50 +389,144 @@ async function createMaze(dimensions){
 }
 
 async function start(){
-    currentMaze = await createMaze(retrieveInputs())
-    currentMaze.grid[0][0].leader = false
-    currentMaze.grid[0][Math.floor(currentMaze.columns/2)].walls["N"] = false
-    currentMaze.grid[currentMaze.rows-1][Math.floor(currentMaze.columns/2)].walls["S"] = false
-    currentMaze.displayGrid()
-}
-
-function solveMaze(){
-    if(!currentMaze){  
+    if(generating && currentMaze == null){
         document.getElementById("Error").textContent = "Wait for generation to complete."
     }
     else{
+        currentMaze = null
+        generating = true
+        paused = false
+        skipTheAnimation = false
+        currentMaze = await createMaze(retrieveInputs())
+        currentMaze.grid[0][0].leader = false
+        //makes the entrance and exit
+        currentMaze.grid[0][Math.floor(currentMaze.columns/2)].walls["N"] = false
+        currentMaze.grid[currentMaze.rows-1][Math.floor(currentMaze.columns/2)].walls["S"] = false
+        currentMaze.displayGrid()
+        generating = false
+        document.getElementById("Error").textContent = ""
+    }
+}
+
+async function solveMaze(){
+    console.log(solving)
+    if(generating){  
+        document.getElementById("Error").textContent = "Wait for generation to complete."
+    }
+    else{
+        if(solving){
+            document.getElementById("Error").textContent = "Wait for solving to complete."
+            return
+        }
+        solving = true
+        paused = false
+        skipTheAnimation = false
+        let dijkstraNodes = document.getElementById("dijkstraNodes")
+        let astarNodes = document.getElementById("astarNodes")
+        //resets the searched variable for all cells
+        //this is needed to reset the maze if the user wants to solve it multiple times or with the other algorithm
+        for (let i = 0; i < currentMaze.rows; i++){
+            for (let j = 0; j < currentMaze.columns; j++){
+                currentMaze.grid[i][j].searched = false
+                currentMaze.grid[i][j].inPath = false
+            }
+        }
+        currentMaze.displayGrid()
+
         document.getElementById("Error").textContent = ""
         checkBoxBooleans = retrieveCheckBox()
         if(checkBoxBooleans[0] == true){
-            console.log("dijkstra")
+            //calculates the time taken to solve the maze using Dijkstra's
             solver = new DijkstraSolver(currentMaze.grid)
-            console.log(solver.solve())
-            animateDijkstra(solver)
+            const startTime = performance.now()
+            solver.solve()
+            const endTime = performance.now()
+            const timeTaken = endTime - startTime
+            document.getElementById("dijkstraTime").textContent = timeTaken.toFixed(3)
+            dijkstraNodes.textContent = solver.visitedNodes.length
+            await animateSolve(solver)
+            solving = false
         }
         else if(checkBoxBooleans[1] == true){
-            console.log("a star")
+            //calculates the time take to solve the maze using A*
             solver = new AstarSolver(currentMaze.grid)
-            console.log(solver.solve())
-            animateDijkstra(solver)
+            const startTime = performance.now()
+            solver.solve()
+            const endTime = performance.now()
+            const timeTaken = endTime - startTime
+            document.getElementById("astarTime").textContent = timeTaken.toFixed(3)
+            astarNodes.textContent = solver.visitedNodes.length
+            await animateSolve(solver)
+            solving = false
         }
     }
     
 }
 
-async function animateDijkstra(solver){
-        for (let cell of solver.visitedNodes){
-            cell.searched = true
-            currentMaze.displayGrid()
-            await sleep(100)
-        }
-
-        for (let cell of solver.solutionPath){
-            cell.inPath = true
-            currentMaze.displayGrid()
-            await sleep(100)
-        }
+async function animateSolve(solver){
+    for (let cell of solver.visitedNodes){
+        //sets the searched variable to true for the cells that were visited
+        cell.searched = true
+        currentMaze.displayGrid()
+        await sleep(201 - speed.value)
     }
 
-function sleep(ms) {
+    for (let cell of solver.solutionPath){
+        //sets the inPath variable to true for the cells in the solution path
+        cell.inPath = true
+        currentMaze.displayGrid()
+        await sleep(201 - speed.value)
+    }
+}
+
+function initialiseCanvas(){
+    //initialise canvas
+    const canvas = document.getElementById("canvas")
+    const ctx = canvas.getContext("2d")
+    canvas.width = 640
+    canvas.height = 640
+    ctx.strokeStyle = "black"
+    ctx.strokeRect(0, 0, canvas.width, canvas.height)
+}
+
+function reset(){
+    generating = false
+    solving = false
+    console.log("reset")
+    currentMaze = null
+    //resets text content of the table
+    document.getElementById("dijkstraTime").textContent = "---"
+    document.getElementById("astarTime").textContent = "---"
+    document.getElementById("dijkstraNodes").textContent = "---"
+    document.getElementById("astarNodes").textContent = "---"
+    initialiseCanvas()
+}
+
+function skipAnimation(){
+    console.log("skip")
+    skipTheAnimation = true
+}
+
+function pauseAnimation(){
+    paused = !paused
+    if (paused){
+        document.getElementById("pause").textContent = "Resume"
+    }
+    else{
+        document.getElementById("pause").textContent = "Pause"
+    }
+}
+
+async function sleep(ms) {
+    if(skipTheAnimation){
+        return
+    }
+
+    while (paused){
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+//calls the initialiseCanvas function when the window loads
+window.onload = initialiseCanvas

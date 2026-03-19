@@ -1,21 +1,111 @@
-#container{
+#control-panel{
     display: grid;
-    place-items: center;
+    grid-template-rows: 60px 60px 30px 50px 165px 20px;
+    width: 500px;
+    height: 800px;
+    border: solid black;
+}
+
+#main-content{
+    display: flex;
+    height: 100vh;
+}
+
+#banner{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    background-color: #52b456;
+    padding: 20px;
+}
+
+#control-heading{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+}
+
+#inputs{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    gap: 3px;
+}   
+
+#Error{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: red;
+}
+
+#inputs input{
+    width: 100px;
+    height: 30px;
+}
+
+#speedSlider{
+    width: 120px;
+    height: 20px;
+    accent-color: #52b456;
+}
+
+#slider-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 200px;
+}
+
+#canvas-panel{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex: 1;
+    padding-top: 100px;
+}
+
+#checkboxes{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#button-container{
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
     gap: 3px;
 }
 
 .button{
-    background-color: purple;
-    padding: 5px;
-    border-radius: 5px;
-    font-weight: bold;
+    width: 120px;
+    height: 30px;
+    background-color: #52b456;
     color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
 }
 
-#banner{
-    font-size: 50;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    background-color: rgb(210, 228, 204);
+#comparison{
+    width: 500px;
+}
+
+#comparison table{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#comparison th, #comparison td{
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+body{
+    font-family: Verdana;
 }
